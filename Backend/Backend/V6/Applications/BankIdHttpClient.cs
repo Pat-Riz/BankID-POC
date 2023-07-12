@@ -61,6 +61,24 @@ namespace Backend.V6.Applications
                 throw;
             }
         }
+
+        public async Task<CollectResponse> Collect(CollectRequest req)
+        {
+            try
+            {
+                var JSON = JsonSerializer.Serialize(req);
+                var requestContent = new CustomStringContent(content: JSON, encoding: Encoding.UTF8);
+                var res = await _client.PostAsJsonAsync($"{_options.Value.BankIDUrlV6}/collect", requestContent);
+                res.EnsureSuccessStatusCode();
+                var data = await res.Content.ReadFromJsonAsync<CollectResponse>();
+                return data!;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
+        }
     }
 
     public record AuthRequest
@@ -114,6 +132,7 @@ namespace Backend.V6.Applications
 
     public record CollectRequest
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string orderRef { get; set; } = string.Empty;
     }
     public record CollectResponse

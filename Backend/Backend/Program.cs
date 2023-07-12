@@ -13,7 +13,7 @@ builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Ser
 builder.Services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
 
 
-X509Certificate2 certificate = new X509Certificate2("C:\\Dev\\BankID\\Backend\\FPTestcert4_20230629.p12", "qwerty123");
+X509Certificate2 certificate = new X509Certificate2("C:\\Work\\BankIdPoc\\Backend\\FPTestcert4_20230629.p12", "qwerty123");
 
 builder.Services.AddHttpClient(BankIdHttpClient.CLIENT_NAME)
                 .ConfigureHttpClient(client =>
@@ -48,17 +48,27 @@ app.UseHttpsRedirection();
 
 app.MapGet("/auth", async (IBankIdHttpClient client, IQRCodeGenerator qrCodeGenerator) =>
 {
-    var res = await client.Auth(new AuthRequest() { endUserIp = "192.168.1.127" });
+    var res = await client.Auth(new AuthRequest() { endUserIp = "172.17.208.75" });
     var qrCode = qrCodeGenerator.GenerateQrCode(res.qrStartToken, res.qrStartSecret, DateTime.Now);
-    return TypedResults.Ok(qrCode);
+
+    return TypedResults.Ok(new { orderRef = res.orderRef, qrCode = qrCode });
 })
 .WithOpenApi();
 
+
 app.MapGet("/sign", (IBankIdHttpClient client) =>
 {
-    client.Sign(new SignRequest() { endUserIp = "192.168.1.127", userNonVisibleData = "JOHAN" });
+    client.Sign(new SignRequest() { endUserIp = "172.17.208.75", userNonVisibleData = "JOHAN" });
 
     return TypedResults.Ok();
+})
+.WithOpenApi();
+
+app.MapGet("/collect", async (IBankIdHttpClient client, string _orderRef) =>
+{
+    var res = await client.Collect(new CollectRequest() { orderRef = _orderRef });
+
+    return TypedResults.Ok(res);
 })
 .WithOpenApi();
 
