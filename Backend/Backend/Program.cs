@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IBankIdHttpClient, BankIdHttpClient>();
+builder.Services.AddScoped<IQRCodeGenerator, QRCodeGenerator>();
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("ServiceOptions"));
 builder.Services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
 
@@ -45,11 +46,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseHttpsRedirection();
 
-app.MapGet("/auth", async (IBankIdHttpClient client) =>
+app.MapGet("/auth", async (IBankIdHttpClient client, IQRCodeGenerator qrCodeGenerator) =>
 {
     var res = await client.Auth(new AuthRequest() { endUserIp = "192.168.1.127" });
-
-    return TypedResults.Ok(res);
+    var qrCode = qrCodeGenerator.GenerateQrCode(res.qrStartToken, res.qrStartSecret, DateTime.Now);
+    return TypedResults.Ok(qrCode);
 })
 .WithOpenApi();
 

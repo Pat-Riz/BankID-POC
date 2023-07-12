@@ -3,24 +3,45 @@ import axios from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 
+// interface AuthResponse {
+//   autoStartToken: string;
+//   orderRef: string;
+//   qrStartSecret: string;
+//   qrStartToken: string;
+// }
+
 interface AuthResponse {
-  autoStartToken: string;
-  orderRef: string;
-  qrStartSecret: string;
-  qrStartToken: string;
+  qrCode: string;
 }
+
+const generateQrCode = (startToken: string, startSecret: string) => {
+  return "";
+};
 
 function App() {
   const [authResponse, setAuthResponse] = useState<AuthResponse>();
+
+  console.log("AuthResponse ", authResponse);
 
   const auth = async () => {
     const res = await axios.get("https://localhost:7139/auth");
     console.log("RES -> ", res);
   };
 
-  const qrCode = authResponse
-    ? `${authResponse?.qrStartToken} ${authResponse?.qrStartSecret}`
-    : "HEJ";
+  const qrCode = authResponse ? authResponse : "";
+  // const qrCode = authResponse
+  //   ? `${authResponse?.qrStartToken}.${authResponse?.qrStartSecret}`
+  //   : "";
+
+  // const qrCode = authResponse
+  //   ? `bankid.${authResponse?.qrStartToken}.${authResponse?.qrStartSecret}`
+  //   : "";
+
+  // const qrCode = authResponse
+  // ? `${authResponse?.qrStartToken}.${authResponse?.qrStartSecret}`
+  // : "";
+
+  console.log("qrCode -->", qrCode);
 
   return (
     <>
