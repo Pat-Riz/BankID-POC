@@ -2,8 +2,8 @@
 {
     public interface IBankIdHttpClient
     {
-        Task<AuthResponse> Auth(AuthRequest req);
-        Task<SignResponse> Sign(SignRequest req);
-        Task<CollectResponse> Collect(CollectRequest req);
+        Task<BankIdAuthResponse> Auth(AuthRequest req);
+        Task<BankIdSignResponse> Sign(SignRequest req);
+        Task<BankIdCollectResponse> Collect(CollectRequest req);
     }
 }

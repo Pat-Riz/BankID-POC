@@ -24,19 +24,13 @@ namespace Backend.V6.Applications
         }
 
 
-
-        public async Task<AuthResponse> Auth(AuthRequest req)
+        public async Task<BankIdAuthResponse> Auth(AuthRequest req)
         {
             try
             {
-
-                //var res = await _client.PostAsJsonAsync($"{_options.Value.BankIDUrlV6}/auth", req,
-                //    new System.Text.Json.JsonSerializerOptions() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull} );
-                var JSON = JsonSerializer.Serialize(req);
-                var requestContent = new CustomStringContent(content: JSON, encoding: Encoding.UTF8);
-                var res = await _client.PostAsync($"{_options.Value.BankIDUrlV6}/auth", requestContent);
+                var res = await _client.PostAsync($"{_options.Value.BankIDUrlV6}/auth", SerializeCustomStringContent(req));
                 res.EnsureSuccessStatusCode();
-                var data = await res.Content.ReadFromJsonAsync<AuthResponse>();
+                var data = await res.Content.ReadFromJsonAsync<BankIdAuthResponse>();
                 return data!;
             }
             catch (Exception e)
@@ -46,13 +40,13 @@ namespace Backend.V6.Applications
             }
         }
 
-        public async Task<SignResponse> Sign(SignRequest req)
+        public async Task<BankIdSignResponse> Sign(SignRequest req)
         {
             try
             {
-                var res = await _client.PostAsJsonAsync($"{_options.Value.BankIDUrlV6}/sign", req);
+                var res = await _client.PostAsync($"{_options.Value.BankIDUrlV6}/sign", SerializeCustomStringContent(req));
                 res.EnsureSuccessStatusCode();
-                var data = await res.Content.ReadFromJsonAsync<SignResponse>();
+                var data = await res.Content.ReadFromJsonAsync<BankIdSignResponse>();
                 return data!;
             }
             catch (Exception e)
@@ -62,15 +56,13 @@ namespace Backend.V6.Applications
             }
         }
 
-        public async Task<CollectResponse> Collect(CollectRequest req)
+        public async Task<BankIdCollectResponse> Collect(CollectRequest req)
         {
             try
             {
-                var JSON = JsonSerializer.Serialize(req);
-                var requestContent = new CustomStringContent(content: JSON, encoding: Encoding.UTF8);
-                var res = await _client.PostAsJsonAsync($"{_options.Value.BankIDUrlV6}/collect", requestContent);
+                var res = await _client.PostAsync($"{_options.Value.BankIDUrlV6}/collect", SerializeCustomStringContent(req));
                 res.EnsureSuccessStatusCode();
-                var data = await res.Content.ReadFromJsonAsync<CollectResponse>();
+                var data = await res.Content.ReadFromJsonAsync<BankIdCollectResponse>();
                 return data!;
             }
             catch (Exception e)
@@ -78,6 +70,13 @@ namespace Backend.V6.Applications
                 _logger.LogError(e.Message);
                 throw;
             }
+        }
+
+        private CustomStringContent SerializeCustomStringContent<T>(T req)
+        {
+            var JSON = JsonSerializer.Serialize(req);
+            var requestContent = new CustomStringContent(content: JSON, encoding: Encoding.UTF8);
+            return requestContent;
         }
     }
 
@@ -103,7 +102,7 @@ namespace Backend.V6.Applications
         public string? personalNumber { get; set; }
     }
 
-    public record AuthResponse
+    public record BankIdAuthResponse
     {
         public string orderRef { get; set; } = string.Empty;
         public string autoStartToken { get; set; } = string.Empty;
@@ -115,14 +114,17 @@ namespace Backend.V6.Applications
     public record SignRequest
     {
         public string endUserIp { get; set; } = string.Empty;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Requirment? requirment { get; set; }
         public string userVisibleData { get; set; } = string.Empty;
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? userNonVisibleData { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? userVisibleDataFormat { get; set; }
     }
 
-    public record SignResponse
+    public record BankIdSignResponse
     {
         public string orderRef { get; set; } = string.Empty;
         public string autoStartToken { get; set; } = string.Empty;
@@ -132,10 +134,9 @@ namespace Backend.V6.Applications
 
     public record CollectRequest
     {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string orderRef { get; set; } = string.Empty;
     }
-    public record CollectResponse
+    public record BankIdCollectResponse
     {
         public string orderRef { get; set; } = string.Empty;
         public string status { get; set; } = string.Empty;
