@@ -1,4 +1,6 @@
-﻿namespace Backend.V6.Applications
+﻿using Backend.V6.Models;
+
+namespace Backend.V6.Applications
 {
     public interface IBankIdHttpClient
     {

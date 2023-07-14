@@ -3,6 +3,8 @@ using System.Text;
 
 namespace Backend.V6.Applications
 {
+    public record QRCodeData(string OrderRef, string StartToken, string StartSecret, DateTime RequestStartTime);
+
     public class QRCodeGenerator : IQRCodeGenerator
     {
         private readonly Dictionary<string, QRCodeData> _qrCodes;
@@ -53,25 +55,8 @@ namespace Backend.V6.Applications
         public void RemoveQRCode(string orderRef)
         {
             _qrCodes.Remove(orderRef);
+            //TODO: Also remove all data with RequestStartTime Older than 1 hour/day? Incase of "skräpdata"
         }
-    }
-
-    public record QRCodeData
-    {
-
-        public QRCodeData(string orderRef, string startToken, string startSecret, DateTime requestStartTime)
-        {
-            OrderRef = orderRef;
-            StartToken = startToken;
-            StartSecret = startSecret;
-            RequestStartTime = requestStartTime;
-        }
-
-        public string OrderRef { get; }
-
-        public string StartToken { get; }
-        public string StartSecret { get; }
-        public DateTime RequestStartTime { get; }
     }
 }
 

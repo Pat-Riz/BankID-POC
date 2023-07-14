@@ -1,4 +1,4 @@
-namespace Models
+namespace Backend.V6.Models
 {
     public class Cert
     {

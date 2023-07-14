@@ -1,4 +1,6 @@
-namespace Models
+using Models;
+
+namespace Backend.V6.Models
 {
     public class CompletionData
     {

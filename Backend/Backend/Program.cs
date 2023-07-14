@@ -1,5 +1,5 @@
+using Backend;
 using Backend.V6.Applications;
-using Models;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 
@@ -22,9 +22,11 @@ builder.Services.AddHttpClient(BankIdHttpClient.CLIENT_NAME)
                 .ConfigurePrimaryHttpMessageHandler(
                    () =>
                    {
+                       var options = new ServiceOptions();
+                       builder.Configuration.GetSection("ServiceOptions").Bind(options);
+
                        var handler = new HttpClientHandler();
-                       handler.ClientCertificates.Add(new X509Certificate2(builder.Configuration.GetSection("ServiceOptions")["BankIDCertPath"]!, "qwerty123"));
-                       //handler.ClientCertificates.Add(X509CertificateHelper.GetCertificate(builder.Configuration));
+                       handler.ClientCertificates.Add(new X509Certificate2(options.BankIDCertPath, options.BankIdCertPassword));
 
                        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
                        return handler;
@@ -44,51 +46,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseHttpsRedirection();
 
-app.MapGet("/auth", async (IBankIdHttpClient client, IQRCodeGenerator qrCodeGenerator) =>
-{
-    var res = await client.Auth(new AuthRequest() { endUserIp = "172.17.208.75" });
-    var qrCode = qrCodeGenerator.GenerateQrCode(res.orderRef, res.qrStartToken, res.qrStartSecret, DateTime.Now);
-
-    return TypedResults.Ok(new AuthResponse() { qrCode = qrCode, orderRef = res.orderRef });
-})
-.WithOpenApi();
-
-
-app.MapGet("/sign", (IBankIdHttpClient client) =>
-{
-    client.Sign(new SignRequest() { endUserIp = "172.17.208.75", userVisibleData = "IFRoaXMgaXMgYSBzYW1wbGUgdGV4dCB0byBiZSBzaWduZWQ=" });
-
-    return TypedResults.Ok();
-})
-.WithOpenApi();
-
-app.MapPost("/collect", async (IBankIdHttpClient client, CollectRequest req, IQRCodeGenerator generator) =>
-{
-    var res = await client.Collect(req);
-    var collectRes = new CollectResponse
-    {
-        status = res.status,
-        hintCode = res.hintCode,
-        completionData = res.completionData,
-        qrCode = generator.UpdateQRCode(req.orderRef)
-    };
-    return TypedResults.Ok(collectRes);
-})
-.WithOpenApi();
+app.MapEndpoints();
 
 app.Run();
-
-public record AuthResponse
-{
-    public string qrCode { get; set; }
-    public string orderRef { get; set; }
-}
-
-public record CollectResponse
-{
-
-    public string qrCode { get; set; } = string.Empty;
-    public string status { get; set; } = string.Empty;
-    public string? hintCode { get; set; }
-    public CompletionData? completionData { get; set; }
-}

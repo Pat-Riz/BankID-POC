@@ -14,6 +14,8 @@ interface CollectResponse {
   hintCode: string;
 }
 
+const TEST_IP = "172.17.208.75";
+
 function App() {
   const [authResponse, setAuthResponse] = useState<AuthResponse>();
   const [collectResponse, setCollectResponse] = useState<CollectResponse>();
@@ -32,31 +34,29 @@ function App() {
         orderRef: authResponse?.orderRef,
       });
       const data = res.data as CollectResponse;
-      if (data.status === "failed") {
+      if (data.status !== "pending") {
         console.log("clearing Timer");
 
-        stopTimer();
+        stopTimer(); //This dont work for some reason :(
       }
       setCollectResponse(data);
     };
 
     if (authResponse?.orderRef) {
       setTimer(setInterval(collect, 1000));
-
-      return () => {
-        stopTimer();
-      };
     }
+
+    return () => {
+      stopTimer();
+    };
   }, [authResponse]);
 
   const qrCode = collectResponse
     ? collectResponse.qrCode
     : authResponse?.qrCode;
 
-  console.log("Collect Status -->", collectResponse?.status);
+  // console.log("Collect Status -->", collectResponse?.status);
   console.log("qrCode -->", qrCode);
-
-  console.log("TIMER ID ", timer);
 
   return (
     <>
@@ -71,15 +71,16 @@ function App() {
         <Button
           onClick={() => {
             void (async () => {
-              const res = await axios.get("https://localhost:7139/auth");
-              console.log("RES -> ", res);
+              const res = await axios.post("https://localhost:7139/auth", {
+                endUserIp: TEST_IP,
+              });
               setAuthResponse(res.data as AuthResponse);
             })();
           }}
           variant='contained'
           sx={{ my: 8 }}
         >
-          Auth
+          Logga in
         </Button>
 
         {qrCode && (
@@ -90,6 +91,8 @@ function App() {
             </Box>
           </>
         )}
+        <Typography>Status: {collectResponse?.status}</Typography>
+        <Typography>HintCode: {collectResponse?.hintCode}</Typography>
       </Box>
     </>
   );
