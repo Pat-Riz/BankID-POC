@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Backend.V6.Applications
@@ -7,17 +8,20 @@ namespace Backend.V6.Applications
 
     public class QRCodeGenerator : IQRCodeGenerator
     {
-        private readonly Dictionary<string, QRCodeData> _qrCodes;
+        private readonly IMemoryCache _cache;
+        private readonly MemoryCacheEntryOptions _cacheOptions;
 
-        public QRCodeGenerator()
+        public QRCodeGenerator(IMemoryCache cache)
         {
-            _qrCodes = new Dictionary<string, QRCodeData>();
+            _cache = cache;
+            // BankID authentication is only valid for 30 secs, then it timesout. So we only want to store the values for around that long.
+            _cacheOptions = new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) };
         }
 
         public string GenerateQrCode(string orderRef, string qrStartToken, string qrStartSecret, DateTime requestStartTime)
         {
             string qrCode = GenerateQrCode(qrStartToken, qrStartSecret, requestStartTime);
-            _qrCodes.Add(orderRef, new QRCodeData(orderRef, qrStartToken, qrStartSecret, requestStartTime));
+            _cache.Set(orderRef, new QRCodeData(orderRef, qrStartToken, qrStartSecret, requestStartTime), _cacheOptions);
 
             return qrCode;
         }
@@ -35,11 +39,11 @@ namespace Backend.V6.Applications
         public string UpdateQRCode(string orderRef)
         {
             string qrCode = "";
-            if (_qrCodes.ContainsKey(orderRef))
+            if (_cache.TryGetValue<QRCodeData>(orderRef, out var result) && result is not null)
             {
-                var qrCodeData = _qrCodes[orderRef];
-                qrCode = GenerateQrCode(qrCodeData.StartToken, qrCodeData.StartSecret, qrCodeData.RequestStartTime);
+                qrCode = GenerateQrCode(result.StartToken, result.StartSecret, result.RequestStartTime);
             }
+
             return qrCode;
         }
 
@@ -52,11 +56,6 @@ namespace Backend.V6.Applications
             }
         }
 
-        public void RemoveQRCode(string orderRef)
-        {
-            _qrCodes.Remove(orderRef);
-            //TODO: Also remove all data with RequestStartTime Older than 1 hour/day? Incase of "skräpdata"
-        }
     }
 }
 

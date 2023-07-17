@@ -10,10 +10,10 @@ namespace Backend
         public static WebApplication MapEndpoints(this WebApplication app)
         {
 
-            app.MapPost("/auth", async (IBankIdHttpClient client, IQRCodeGenerator qrCodeGenerator, AuthRequest req) =>
+            app.MapPost("/auth", async (IBankIdHttpClient client, IQRCodeGenerator generator, AuthRequest req) =>
             {
                 var res = await client.Auth(req);
-                var qrCode = qrCodeGenerator.GenerateQrCode(res.orderRef, res.qrStartToken, res.qrStartSecret, DateTime.Now);
+                var qrCode = generator.GenerateQrCode(res.orderRef, res.qrStartToken, res.qrStartSecret, DateTime.Now);
 
                 return TypedResults.Ok(new AuthResponse() { qrCode = qrCode, orderRef = res.orderRef });
             }).WithOpenApi();
@@ -22,11 +22,6 @@ namespace Backend
             app.MapPost("/collect", async (IBankIdHttpClient client, CollectRequest req, IQRCodeGenerator generator) =>
             {
                 var res = await client.Collect(req);
-
-                if (res.status == "complete" || res.status == "failed")
-                {
-                    generator.RemoveQRCode(res.orderRef);
-                }
 
                 var collectRes = new CollectResponse
                 {
@@ -37,6 +32,8 @@ namespace Backend
                 };
                 return TypedResults.Ok(collectRes);
             }).WithOpenApi();
+
+
 
             return app;
         }

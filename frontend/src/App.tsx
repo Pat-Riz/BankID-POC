@@ -68,6 +68,22 @@ function App() {
           flexDirection: "column",
         }}
       >
+        {qrCode && (
+          <>
+            <Typography>Scan it bitch</Typography>
+            <Box sx={{ borderColor: "black", border: 2, p: 8 }}>
+              <QRCodeSVG value={qrCode}></QRCodeSVG>{" "}
+            </Box>
+          </>
+        )}
+        {authResponse && (
+          <>
+            <Typography sx={{ mt: 4 }}>
+              Status: {collectResponse?.status}
+            </Typography>
+            <Typography>HintCode: {collectResponse?.hintCode}</Typography>{" "}
+          </>
+        )}
         <Button
           onClick={() => {
             void (async () => {
@@ -78,21 +94,10 @@ function App() {
             })();
           }}
           variant='contained'
-          sx={{ my: 8 }}
+          sx={{ position: "absolute", top: 400 }}
         >
           Logga in
         </Button>
-
-        {qrCode && (
-          <>
-            <Typography>Scan it bitch</Typography>
-            <Box sx={{ borderColor: "black", border: 2, p: 8 }}>
-              <QRCodeSVG value={qrCode}></QRCodeSVG>{" "}
-            </Box>
-          </>
-        )}
-        <Typography>Status: {collectResponse?.status}</Typography>
-        <Typography>HintCode: {collectResponse?.hintCode}</Typography>
       </Box>
     </>
   );

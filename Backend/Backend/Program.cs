@@ -12,6 +12,7 @@ builder.Services.AddScoped<IBankIdHttpClient, BankIdHttpClient>();
 builder.Services.AddSingleton<IQRCodeGenerator, QRCodeGenerator>();
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("ServiceOptions"));
 builder.Services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
+builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient(BankIdHttpClient.CLIENT_NAME)
                 .ConfigureHttpClient(client =>

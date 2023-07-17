@@ -4,6 +4,5 @@
     {
         string GenerateQrCode(string orderRef, string qrStartToken, string qrStartSecret, DateTime requestStartTime);
         string UpdateQRCode(string orderRef);
-        void RemoveQRCode(string orderRef);
     }
 }
